@@ -1,0 +1,46 @@
+name: Android APK automatisch bauen
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: APK bauen
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Projekt herunterladen
+        uses: actions/checkout@v4
+
+      - name: Java 17 einrichten
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Android SDK einrichten
+        uses: android-actions/setup-android@v3
+
+      - name: Android SDK Komponenten installieren
+        run: |
+          sdkmanager "platform-tools"
+          sdkmanager "platforms;android-35"
+          sdkmanager "build-tools;35.0.0"
+
+      - name: Gradle einrichten
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: APK bauen
+        run: |
+          gradle :app:assembleDebug
+
+      - name: APK bereitstellen
+        uses: actions/upload-artifact@v4
+        with:
+          name: Brandschutz-App-APK
+          path: app/build/outputs/apk/debug/app-debug.apk
